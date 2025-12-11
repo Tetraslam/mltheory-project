@@ -1,0 +1,229 @@
+\documentclass[25pt, a0paper, landscape]{tikzposter}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+% Graphics path
+\graphicspath{{../outputs/figures/}}
+
+% Color theme
+\definecolor{primaryblue}{HTML}{1a365d}
+\definecolor{accentblue}{HTML}{2b6cb0}
+\definecolor{lightgray}{HTML}{f7fafc}
+\definecolor{darktext}{HTML}{2d3748}
+
+% Custom theme
+\usetheme{Default}
+\definecolorstyle{CustomStyle}{
+    \definecolor{colorOne}{named}{primaryblue}
+    \definecolor{colorTwo}{named}{accentblue}
+    \definecolor{colorThree}{named}{lightgray}
+}{
+    \colorlet{backgroundcolor}{white}
+    \colorlet{framecolor}{colorOne}
+    \colorlet{titlefgcolor}{white}
+    \colorlet{titlebgcolor}{colorOne}
+    \colorlet{blocktitlebgcolor}{colorTwo}
+    \colorlet{blocktitlefgcolor}{white}
+    \colorlet{blockbodybgcolor}{colorThree}
+    \colorlet{blockbodyfgcolor}{darktext}
+}
+\usecolorstyle{CustomStyle}
+\useblockstyle{Default}
+
+% Poster info
+\title{Diabetes Prediction Using Machine Learning}
+\author{Shresht Bhowmick, Mouad Tiahi, Xiaole Su, Colin Johnson}
+\institute{MATH 7243: Machine Learning Theory 1 -- Fall 2025}
+
+\begin{document}
+
+\maketitle[width=0.9\textwidth]
+
+\begin{columns}
+
+%==============================================================================
+% COLUMN 1
+%==============================================================================
+\column{0.25}
+
+\block{Background \& Motivation}{
+    \textbf{Problem:} Diabetes affects 38.4M Americans (11.6\%), with 8.7M undiagnosed. Late diagnosis increases risk of heart disease, kidney failure, and blindness.
+
+    \vspace{0.5em}
+    \textbf{Goal:} Compare ML approaches for diabetes risk prediction from routine health metrics.
+
+    \vspace{0.5em}
+    \textbf{Questions:}
+    \begin{itemize}[leftmargin=*, itemsep=0.2em, topsep=0.2em]
+        \item Which ML paradigm works best?
+        \item Can deep learning compete?
+        \item What limits performance?
+    \end{itemize}
+}
+
+\block{Dataset}{
+    \textbf{Kaggle Playground S5E12} -- Synthetic data via CTGAN.
+
+    \vspace{0.3em}
+    \small
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        Training & 700,000 \\
+        Test & 300,000 \\
+        Features & 24 \\
+        Classes & 62\% diabetic / 38\% non \\
+        \bottomrule
+    \end{tabular}
+    \normalsize
+
+    \vspace{0.5em}
+    \textbf{Features:} Age, BMI, blood pressure, cholesterol, physical activity, family history, etc.
+
+    \vspace{0.3em}
+    \textbf{Missing:} HbA1c, fasting glucose, insulin (standard clinical markers).
+
+    \vspace{0.5em}
+    \begin{center}
+    \includegraphics[width=0.85\linewidth]{target_distribution.png}
+    \end{center}
+}
+
+\block{Methods}{
+    \textbf{1. Logistic Regression} (ElasticNet)
+
+    L1+L2: $\lambda(\alpha\|w\|_1 + (1{-}\alpha)\|w\|_2^2)$
+
+    \vspace{0.3em}
+    \textbf{2. Random Forest}
+
+    100 trees, max\_depth=20, balanced weights
+
+    \vspace{0.3em}
+    \textbf{3. LightGBM}
+
+    Leaf-wise boosting, histogram binning, GOSS
+
+    \vspace{0.3em}
+    \textbf{4. Neural Network (MLP)}
+
+    256$\to$128$\to$64, BatchNorm, Dropout(0.3)
+}
+
+%==============================================================================
+% COLUMN 2
+%==============================================================================
+\column{0.25}
+
+\block{Main Results}{
+    \small
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Model} & \textbf{Acc} & \textbf{Prec} & \textbf{Rec} & \textbf{AUC} \\
+        \midrule
+        Logistic Reg & 66.5 & 68.3 & \textbf{86.4} & 0.695 \\
+        Random Forest & 65.1 & 73.6 & 68.5 & 0.701 \\
+        \textbf{LightGBM} & 65.3 & \textbf{77.4} & 62.4 & \textbf{0.724} \\
+        Neural Net & 62.4 & 76.1 & 57.7 & 0.696 \\
+        \bottomrule
+    \end{tabular}
+    \normalsize
+
+    \begin{center}
+    \includegraphics[width=0.9\linewidth]{metrics_comparison.png}
+    \end{center}
+
+    \textbf{Kaggle:} LightGBM: \textbf{0.696 AUC} (top: 0.705)
+}
+
+\block{ROC \& PR Curves}{
+    \begin{center}
+    \includegraphics[width=0.85\linewidth]{roc_curves_comparison.png}
+    \includegraphics[width=0.85\linewidth]{pr_curves_comparison.png}
+    \end{center}
+
+    LightGBM: AUC=0.724, AP=0.8085
+}
+
+%==============================================================================
+% COLUMN 3
+%==============================================================================
+\column{0.25}
+
+\block{Confusion Matrices}{
+    \begin{center}
+    \includegraphics[width=0.8\linewidth]{lightgbm_confusion.png}
+
+    {\small LightGBM: High precision}
+
+    \includegraphics[width=0.8\linewidth]{logistic_regression_(elasticnet)_confusion.png}
+
+    {\small Logistic Reg: High recall}
+    \end{center}
+}
+
+\block{Feature Importance}{
+    \begin{center}
+    \includegraphics[width=0.9\linewidth]{lgb_feature_importance.png}
+    \end{center}
+
+    \textbf{Top:} Physical activity, family history, age, BMI
+}
+
+%==============================================================================
+% COLUMN 4
+%==============================================================================
+\column{0.25}
+
+\block{Neural Network Training}{
+    \begin{center}
+    \includegraphics[width=0.95\linewidth]{nn_training_curves.png}
+    \end{center}
+
+    Overfitting at epoch 15--20 despite regularization. Validation loss plateaus while training loss decreases.
+}
+
+\block{Key Findings}{
+    \coloredbox[bgcolor=white,framecolor=accentblue]{
+    \begin{enumerate}[leftmargin=*, itemsep=0.4em, topsep=0.2em]
+        \item \textbf{Gradient boosting wins:} LightGBM best AUC (0.724) -- SOTA for tabular data
+
+        \item \textbf{Deep learning struggles:} MLP worst performance; tabular data lacks structure NNs exploit
+
+        \item \textbf{65\% accuracy ceiling:} All models converge -- feature quality limits performance
+
+        \item \textbf{Class imbalance:} Balanced weights essential for medical prediction
+    \end{enumerate}
+    }
+}
+
+\block{Conclusions}{
+    \begin{itemize}[leftmargin=*, itemsep=0.3em, topsep=0.2em]
+        \item LightGBM is best for tabular medical data
+        \item Logistic regression wins if recall prioritized
+        \item Missing clinical markers limit accuracy
+        \item Model choice depends on clinical context: high recall for screening, high precision for diagnosis
+    \end{itemize}
+
+    \vspace{0.4em}
+    \textbf{Future:} SHAP interpretability, threshold tuning, TabNet/FT-Transformer exploration, validation on real clinical data
+
+    \vspace{0.4em}
+    \textbf{Code:} \texttt{github.com/tetraslam/mltheory-project}
+}
+
+\block{References}{
+    \small
+    [1] Breiman, ``Random Forests,'' 2001 \quad
+    [2] Ke et al., ``LightGBM,'' NeurIPS 2017 \quad
+    [3] Zou \& Hastie, ``Elastic Net,'' 2005 \quad
+    [4] Ioffe \& Szegedy, ``Batch Normalization,'' ICML 2015
+}
+
+\end{columns}
+
+\end{document}
